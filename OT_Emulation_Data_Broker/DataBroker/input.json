@@ -1,0 +1,32 @@
+{
+    "Simulator": [
+        {
+            "executableName": "ans_runtime_15mar21",
+            "numberOfProcessVariables": 33,
+            "numberofActuationSignals": 16,
+            "simulationMajorTimeStep":50
+        }
+    ],
+    "Endpoints": [
+        {
+            "Node": "RC1_Controller",
+            "IP_Host": "192.168.0.22",
+            "IP_PLC": "127.0.0.1",
+            "Sensor": "1",
+            "SensorNames": "RC1_PumpFlow,2052",
+            "Actuator": "1",
+            "ActuatorNames": "RC1_PumpSpeedCmd,2054",
+            "ScanTime": "0.1" 
+        },
+        {
+            "Node": "SG_P_Controller",
+            "IP_Host": "192.168.0.11",
+            "IP_PLC": "127.0.0.1",
+            "Sensor": "1",
+            "SensorNames": "SG1_Press,2052,SG2_Press,2054,RX_ReactorPower,2056",
+            "Actuator": "1",
+            "ActuatorNames": "TB_IsoValveCmd,2058",
+            "ScanTime": "0.1" 
+        }
+    ]
+}
