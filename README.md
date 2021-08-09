@@ -1,2 +1,2 @@
 # SMARTT
-Small Modular Reactor Testing and Training
+Small Modular Advanced Reactor Testing and Training
