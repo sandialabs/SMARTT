@@ -1,0 +1,93 @@
+# <--comments start with # and comments can only be on a line that starts as a comment
+#
+# Each component is seperated with a blank line
+#
+# NameofValue:Value is convention
+# NameofValue:[Value,Value] is acceptible for lists
+# But so is NameofValue:Value,Value only the comma is needed between values
+#
+# Event names come after their number and are only for your convenice,
+# Trigger and Start will only reffer to their index number.
+# Index numbers of all components MUST be in order, AND may not skip numbers
+# because the reader indexes them itself, and you need to keep track of them!
+# Timing is all in seconds, and nothing is case sensitive.
+
+# PLCs start with "PLC" then the index number
+# With the next line being the IP of the PLC
+PLC 1 Name of PLC
+IP:127.0.0.1 
+# The port and Word and Byte order are optional inputs for the PLC.
+# Port will default to Modbus 502
+Port:502
+# Word and Byte order default to Big, the input must either be Big or Little
+# refering to the endianness of the memory registers.
+WordOrder:Big
+ByteOrder:Big
+
+# PLCs used must be created BEFORE using them in an Event or trigger
+# You don't need to create them all at the beginning, just before you use them in a function
+
+Event 1 Name of Event
+# You can comment within functions
+# just don't leave a space
+PLC:1
+# Define the PLC the Event will communicate with (only one PLC allowed per Event)
+mem:2050
+# memory addresses of PLC that will be written
+format:32_float
+# You can specify the format of the memory addresses with 'format'
+# Valid formats = 16_float, 32_float, 64_float, 16_int, 32_int, 64_int, 16_uint, 32_uint, 64_uint
+# if you decide to use any format other than the default 32_float, you must specify it for each memory address
+# i.e. [16_int,16_int]. If you only want 32_float, you don't need to have a format entry.
+Values:100,200
+# values you want to write to the PLC
+# these change intent depending on the type of Event.
+# Ramp Events mean you need at least 2 values that the ramp will slope between.
+# Single Events are static values writen to memory, a list of values implies
+# these different values will be written to their corrisponding list of memory addresses.
+timing:30
+# Timing also changes meaning depending on Event type
+# Ramp type Events make timing = dt (Value[1]-Value[2])/dt = dx/dt
+# You can have a list of timing values and this changes the dt between ramp transitions
+# For single Events, timing only takes on meaning when in conjuction with the persist option
+# timing with persist=True indicates the time between rewrites of the data to the memory register
+type:ramp
+# Type has 2 options, ramp or single
+delay:0
+# delay pauses the start of an Event for the given number of seconds
+# if used with trigger, it will delay the beginning of an Event
+persist:false
+#persist will make Events loop forever
+
+Event 2 
+PLC:1
+mem:2048
+values:-100,100
+timing:30
+type:ramp
+delay:0
+persist:false
+
+Trigger 1 
+# define the Event the trigger will start after conditions are met 
+# only one Event per trigger allowed 
+Event:2
+# trigger PLCs start with defining which PLC to look at
+PLC:1 
+# then define which memory registers to read
+mem:2050
+# Now define the values to compair to 
+values:150
+# and define how to compair the values
+# conditions follow: (PLC register value) [<>] (trigger value)
+conditions:>
+
+# Start tells the constructor this is the end of definitions and which things to start
+# you probably wont want all your Event to start, since some maybe triggered
+# So after declaring 'start', list which Events and triggers you want to start
+start 
+Event 1, Trigger 1
+# These follow the syntax of [Event or Trigger] [index number], [next Event/trigger] [index]
+# The important parts the constructor is looking for are commas between items, and spaces between the type of 
+# thing to start and their index number. Only 'Trigger' and 'Event' followed by a space and integer index number are valid objects.
+
