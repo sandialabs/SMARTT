@@ -1,32 +1,22 @@
 {
     "Simulator": [
         {
-            "executableName": "ans_runtime_15mar21",
-            "numberOfProcessVariables": 33,
-            "numberofActuationSignals": 16,
-            "simulationMajorTimeStep":50
+            "executableName": "ans_runtime_15mar21"
         }
     ],
     "Endpoints": [
         {
-            "Node": "RC1_Controller",
-            "IP_Host": "192.168.0.22",
-            "IP_PLC": "127.0.0.1",
-            "Sensor": "1",
-            "SensorNames": "RC1_PumpFlow,2052",
-            "Actuator": "1",
-            "ActuatorNames": "RC1_PumpSpeedCmd,2054",
-            "ScanTime": "0.1" 
-        },
-        {
-            "Node": "SG_P_Controller",
-            "IP_Host": "192.168.0.11",
-            "IP_PLC": "127.0.0.1",
-            "Sensor": "1",
-            "SensorNames": "SG1_Press,2052,SG2_Press,2054,RX_ReactorPower,2056",
-            "Actuator": "1",
-            "ActuatorNames": "TB_IsoValveCmd,2058",
-            "ScanTime": "0.1" 
+            "Node": "SGP_RCP_SGL_Controller",
+            "IP_Host": "192.168.1.4",
+            "IP_PLC": "127.0.0.1,192.168.1.22,192.168.1.23",
+            "SensorNames": "SG1_Press,2052,SG2_Press,2054,RX_ReactorPower,2056,RC1_PumpFlow,2052,SG1_Level,2052,SG2_Level,2054,RX_ReactorPower,2056",
+            "ActuatorNames": "TB_IsoValveCmd,2058,RC1_PumpSpeedCmd,2054,FW_Pump1SpeedCmd,2058,FW_Pump2SpeedCmd,2060,FW_Pump3SpeedCmd,2062,FW_Pump1OnOffCmd,2064,FW_Pump2OnOffCmd,2066,FW_Pump3OnOffCmd,2068",
+            "ScanTime": "0.1,0.1,0.1",
+            "TimeMem": "2048,2048,2048",
+            "MemFormat": "32_float,32_float,32_float",
+            "Endianess":"big,big,big,big,big,big",
+            "Port":"502,502,502",
+            "MultiPLC": "s=3,1,3;a=1,1,6"
         }
     ]
 }

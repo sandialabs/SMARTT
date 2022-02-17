@@ -11,7 +11,7 @@ void *init_Server(void *arg)
     char *json_string;
     const cJSON *object = NULL;
     const cJSON *endpoints = NULL;
-    FILE *fp;
+
     //ZMQ variables
     char IP_buffer[256];
     char *tag, *IP, *saveptr;
@@ -27,7 +27,7 @@ void *init_Server(void *arg)
     startFlag = *(int*)arg;
 
     // Make sure JSON file is read succesfully
-    if (root == NULL)
+    if (!root)
     {
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
@@ -35,7 +35,7 @@ void *init_Server(void *arg)
             fprintf(stderr, "Error before: %s\n", error_ptr);
         }
     }
-
+    
     //Start ZMQ server to communicate with Endpoint
     void *context = zmq_ctx_new();
     if (startFlag == 0){
@@ -78,25 +78,32 @@ void *init_Server(void *arg)
                 cJSON *actuator = cJSON_GetObjectItem(object, "actuator");
                 cJSON *actuatorNames = cJSON_GetObjectItem(object, "actuatorNames");
                 cJSON *scanTime = cJSON_GetObjectItem(object, "scanTime");
+                cJSON *TimeMem = cJSON_GetObjectItem(object, "TimeMem");
+                cJSON *MemFormat = cJSON_GetObjectItem(object, "MemFormat");
+                cJSON *Port = cJSON_GetObjectItem(object, "Port");
+                cJSON *Endianess = cJSON_GetObjectItem(object, "Endianess");
+                cJSON *MultiPLC = cJSON_GetObjectItem(object, "MultiPLC");
 
-                if ((node->valuestring == NULL) || (IP_Host->valuestring == NULL) ||
-                    (sensor->valuestring == NULL))
-                {
+                /* Check to see if everthing needed is there */
+                if (!node) node = cJSON_CreateString("WishIHadAName");
+                if( !IP_PLC || !IP_Host){
+                    printf("Need both IP_PLC and IP_Host in the JSON!!\n");
                     break;
                 }
-                if ((sensorNames->valuestring == NULL) || (actuator->valuestring == NULL) ||
-                    (actuatorNames->valuestring == NULL))
-                {
-                    break;
-                }
-                if (scanTime->valuestring == NULL)
-                {
-                    break;
-                }
-
-                snprintf(msg, sizeof(msg), "%s:%s:%s:%s:%s:%s:%s:", node->valuestring, IP_PLC->valuestring,
-                         sensor->valuestring, sensorNames->valuestring, actuator->valuestring,
-                         actuatorNames->valuestring, scanTime->valuestring);
+                if ( !sensor ) sensor = cJSON_CreateString("0"); /* sensor and actuator will become holding spots for future additions or revisions */
+                if ( !sensorNames ) sensorNames = cJSON_CreateString("NULL");
+                if ( !actuator ) actuator = cJSON_CreateString("0");
+                if ( !actuatorNames ) actuatorNames = cJSON_CreateString("NULL");
+                if ( !scanTime ) scanTime = cJSON_CreateString("0");
+                if ( !TimeMem ) TimeMem = cJSON_CreateString("-1");
+                if ( !MemFormat ) MemFormat = cJSON_CreateString("32_float");
+                if ( !Endianess ) Endianess = cJSON_CreateString("Big,Big");
+                if ( !MultiPLC ) MultiPLC = cJSON_CreateString("NULL");
+                if ( !Port ) Port = cJSON_CreateString("502");
+                
+                snprintf(msg, sizeof(msg), "%s:%s:%s:%s:%s:%s:%s:%s:%s:%s:%s:%s:", node->valuestring, IP_PLC->valuestring,
+                         sensor->valuestring, sensorNames->valuestring, actuator->valuestring, actuatorNames->valuestring, 
+                         scanTime->valuestring, TimeMem->valuestring, MemFormat->valuestring, Endianess->valuestring, Port->valuestring, MultiPLC->valuestring);
                 
                 if (startFlag == 0)
                 {
@@ -143,6 +150,42 @@ void *init_Server(void *arg)
     {
         zmq_ctx_destroy(context);
         printf("Endpoint Initialization Complete\n");
+    }
+}
+
+char *SimName(void)
+{
+    // Vars setup
+    char *json_string;
+    const cJSON *simulator = NULL;
+    const cJSON *EXE = NULL;
+
+    // Read in JSON file
+    json_string = ReadFile("input.json");
+    cJSON *root = cJSON_Parse(json_string);
+    int n = cJSON_GetArraySize(root);
+
+    // Make sure JSON file is read succesfully
+    if (root == NULL)
+    {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Error before: %s\n", error_ptr);
+        }
+    }
+
+    // Read Simulator information
+    simulator = cJSON_GetObjectItem(root, "simulator");
+    cJSON_ArrayForEach(EXE, simulator){
+            cJSON *ExecutableName = cJSON_GetObjectItem(EXE, "executableName");
+            if (!ExecutableName){
+                printf("Executable Name = Null \n****You need a simulation executable in the JSON!****\n");
+                break;
+            }else{
+                printf("Executable Name = %s \n", ExecutableName->valuestring);
+                return ExecutableName->valuestring;
+            }
     }
 }
 

@@ -91,7 +91,7 @@ void *Shm_Interface()
 
 		shmdt(&UpdateSHM);
 
-		//printf("\n***Enter X to stop simulation***\n");
+		printf("\n***Press X then Enter to stop simulation***\n");
 		
 		// send UDP message
 		UDP_Server(msg);
@@ -115,5 +115,9 @@ void *Shm_Interface()
 			break;
 		}
 	}
+	memset(msg,0,sizeof(msg));
+	sprintf(msg,"STOP\nSTOP\n");
+	UDP_Server(msg);
+
 	pthread_exit((void *)0);
 }

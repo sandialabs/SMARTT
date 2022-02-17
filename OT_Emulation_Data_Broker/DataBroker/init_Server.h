@@ -10,4 +10,5 @@
 #include "cJSON.h"
 void *init_Server(void *);
 char *ReadFile();
+char *SimName();
 #endif

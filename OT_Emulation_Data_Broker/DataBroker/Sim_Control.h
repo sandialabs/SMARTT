@@ -11,5 +11,6 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+#include <string.h>
 void *Sim_Control();
 #endif

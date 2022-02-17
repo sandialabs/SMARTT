@@ -18,7 +18,7 @@ void *PLC_Interface()
     char *name, *value, *saveptr;
 
     while (1) {
-        buffer[0] = 0; //This doesn't clear the buffer? Use memset()?
+        memset(buffer,0,sizeof(MSG_BUFFER));
         nbytes = zmq_recv (responder, buffer, MSG_BUFFER, 0);
         assert (nbytes != -1);
         if (nbytes == -1) //Break if ZMQ problem?? Should have program try to fix itself
@@ -26,14 +26,14 @@ void *PLC_Interface()
 			break;
 		}
         
-        printf ("%s\n",buffer);
+        //printf ("%s\n",buffer);
         //if (strcmp("No UDP Broadcast",buffer) == 0){
         //    break;
         //}
 
         name = strtok_r(buffer, ":", &saveptr); //NEED to use strtok_r or not thread safe!
         value = strtok_r(NULL, ":", &saveptr);  //IE if strtok is used in another thread they could collide
-        printf ("%s\n",value);
+        //printf ("%s\n",value);
 
 	    pthread_mutex_lock(&DATA_Mutx);
 
@@ -53,10 +53,10 @@ void *PLC_Interface()
 			break;
 		}
     }
-
-printf("ZMQ Update Server Closed Successfully \n");
+    
 zmq_close(responder); 
 zmq_ctx_destroy(context);
+printf("ZMQ Update Server Closed Successfully \n");
 pthread_exit((void *)0);
 
 }
