@@ -1,0 +1,81 @@
+{
+    "Simulator": [
+        {
+            "executableName": "ans_runtime_15mar21"
+        }
+    ],
+    "Endpoints": [
+        {
+            "Node": "CD_LV_Controller",
+            "IP_Host": "192.168.1.4",
+            "IP_PLC": "127.0.0.1",
+            "SensorNames": "CD_Level,2052,RX_ReactorPower,2054",
+            "ActuatorNames": "CE_Pump1SpeedCmd,2056,CE_Pump2SpeedCmd,2058,CE_Pump3SpeedCmd,2060,CE_Pump1OnOffCmd,2062,CE_Pump2OnOffCmd,2064,CE_Pump3OnOffCmd,2066",
+            "ScanTime": "0.1",
+            "TimeMem": "2048",
+            "MemFormat": "32_float",
+            "Endianess":"big,big",
+            "Port":"502"
+        },
+        {
+            "Node": "CD_P_Controller",
+            "IP_Host": "192.168.1.4",
+            "IP_PLC": "127.0.0.1",
+            "SensorNames": "CD_Press,2052",
+            "ActuatorNames": "CC_PumpSpeedCmd,2054,CC_PumpOnOffCmd,2056",
+            "ScanTime": "0.1",
+            "TimeMem": "2048",
+            "MemFormat": "32_float",
+            "Endianess":"big,big",
+            "Port":"502"
+        },
+        {
+            "Node": "SD_Press_Controller",
+            "IP_Host": "192.168.1.4",
+            "IP_PLC": "127.0.0.1",
+            "SensorNames": "SG1_Press,2052,SG2_Press,2054",
+            "ActuatorNames": "SD_CtrlValveCmd,2056,SD_SafetyValveOnOffCmd,2058",
+            "ScanTime": "0.1",
+            "TimeMem": "2048",
+            "MemFormat": "32_float",
+            "Endianess":"big,big",
+            "Port":"502"
+        },
+        {
+            "Node": "SG_Level_Controller",
+            "IP_Host": "192.168.1.4",
+            "IP_PLC": "127.0.0.1",
+            "SensorNames": "SG1_Level,2052,SG2_Level,2054,RX_ReactorPower,2056",
+            "ActuatorNames": "FW_Pump1SpeedCmd,2058,FW_Pump2SpeedCmd,2060,FW_Pump3SpeedCmd,2062,FW_Pump1OnOffCmd,2064,FW_Pump2OnOffCmd,2066,FW_Pump3OnOffCmd,2068",
+            "ScanTime": "0.1",
+            "TimeMem": "2048",
+            "MemFormat": "32_float",
+            "Endianess":"big,big",
+            "Port":"502"
+        },
+        {
+            "Node": "SG_P_Controller",
+            "IP_Host": "192.168.1.4",
+            "IP_PLC": "127.0.0.1",
+            "SensorNames": "SG1_Press,2052,SG2_Press,2054,RX_ReactorPower,2056",
+            "ActuatorNames": "TB_IsoValveCmd,2058",
+            "ScanTime": "0.1",
+            "TimeMem": "2048",
+            "MemFormat": "32_float",
+            "Endianess":"big,big",
+            "Port":"502"
+        },
+        {
+            "Node": "RCP_Controller",
+            "IP_Host": "192.168.1.4",
+            "IP_PLC": "127.0.0.1",
+            "SensorNames": "RC1_PumpFlow,2052",
+            "ActuatorNames": "RC1_PumpSpeedCmd,2054",
+            "ScanTime": "0.1",
+            "TimeMem": "2048",
+            "MemFormat": "32_float",
+            "Endianess":"big,big",
+            "Port":"502"
+        }
+    ]
+}
