@@ -14,7 +14,6 @@ void *PLC_Interface()
     int STOP = 0;
     int nbytes;
     char buffer [MSG_BUFFER];
-    char *reply = "Actuation Signal Recieved";
     char *name, *value, *saveptr;
 
     while (1) {
@@ -26,14 +25,8 @@ void *PLC_Interface()
 			break;
 		}
         
-        //printf ("%s\n",buffer);
-        //if (strcmp("No UDP Broadcast",buffer) == 0){
-        //    break;
-        //}
-
         name = strtok_r(buffer, ":", &saveptr); //NEED to use strtok_r or not thread safe!
         value = strtok_r(NULL, ":", &saveptr);  //IE if strtok is used in another thread they could collide
-        //printf ("%s\n",value);
 
 	    pthread_mutex_lock(&DATA_Mutx);
 

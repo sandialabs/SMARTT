@@ -106,15 +106,15 @@ class MB_PLC:
         #decoder dictionary
         Decode_dict = { '16_float':float_16, '32_float':float_32, '64_float':float_64, '16_int':int_16, '32_int':int_32, '64_int':int_64, '16_uint':uint_16, '32_uint':uint_32, '64_uint':uint_64 }
 
-        if results is not None:
+        try:
             #Set up decoder
             decoder = BinaryPayloadDecoder.fromRegisters(results.registers, byteorder=self.byteOrder, wordorder=self.wordOrder)
             
             return Decode_dict[formating](decoder)
             #return decoded value
-        else:
+        except:
             #return a Nonetype
-            return results
+            return None
 
     #define how to read coils from PLC
     def readcoil(self, mem_addr):

@@ -2,6 +2,10 @@
 #include "UDP_Server.h"
 #include "Sem_Stop.h"
 
+DATA UP_DATA[MAX_IO]; // Upper limit of IO = 1000
+DATA PUB_DATA[MAX_IO];
+pthread_mutex_t DATA_Mutx;
+
 void *Shm_Interface()
 {
 

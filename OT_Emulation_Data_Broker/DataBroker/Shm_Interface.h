@@ -29,8 +29,9 @@ typedef struct {
     int UP;
     double TimeStep;
     } MSG_DATA;
-DATA UP_DATA[MAX_IO]; // Upper limit of IO = 1000
-DATA PUB_DATA[MAX_IO];
-pthread_mutex_t DATA_Mutx;
+
+extern DATA UP_DATA[MAX_IO];
+extern DATA PUB_DATA[MAX_IO];
+extern pthread_mutex_t DATA_Mutx;
 
 #endif

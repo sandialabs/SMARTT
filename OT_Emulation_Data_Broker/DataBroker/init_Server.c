@@ -7,7 +7,6 @@ void *init_Server(void *arg)
     //Simulator variables
     int STOP = 0;
     //JSON file variables
-    cJSON *elem, *name;
     char *json_string;
     const cJSON *object = NULL;
     const cJSON *endpoints = NULL;
@@ -22,7 +21,7 @@ void *init_Server(void *arg)
     // Read in JSON file
     json_string = ReadFile("input.json");
     cJSON *root = cJSON_Parse(json_string);
-    int n = cJSON_GetArraySize(root);
+    //int n = cJSON_GetArraySize(root); #no longer need size
     
     startFlag = *(int*)arg;
 
@@ -151,6 +150,7 @@ void *init_Server(void *arg)
         zmq_ctx_destroy(context);
         printf("Endpoint Initialization Complete\n");
     }
+    return 0;
 }
 
 char *SimName(void)
@@ -163,7 +163,6 @@ char *SimName(void)
     // Read in JSON file
     json_string = ReadFile("input.json");
     cJSON *root = cJSON_Parse(json_string);
-    int n = cJSON_GetArraySize(root);
 
     // Make sure JSON file is read succesfully
     if (root == NULL)
@@ -181,10 +180,13 @@ char *SimName(void)
             cJSON *ExecutableName = cJSON_GetObjectItem(EXE, "executableName");
             if (!ExecutableName){
                 printf("Executable Name = Null \n****You need a simulation executable in the JSON!****\n");
+                ExecutableName = cJSON_CreateString("Simulink");
+                return ExecutableName->valuestring;
                 break;
             }else{
                 printf("Executable Name = %s \n", ExecutableName->valuestring);
                 return ExecutableName->valuestring;
+                break;
             }
     }
 }

@@ -10,7 +10,7 @@ int main()
 	pthread_t Sim_Int;
 	pthread_t Sim_Con;
 	pthread_t PLC_Con;
-	pthread_t init_S;
+	//pthread_t init_S; #Depricated thread for continuous Endpoint reattachment
 	int startFlag = 1;
 	Sem_Interface();
 	printf("Semaphores Initialized\n");
