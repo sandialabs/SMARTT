@@ -123,5 +123,17 @@ void *Shm_Interface()
 	sprintf(msg,"STOP\nSTOP\n");
 	UDP_Server(msg);
 
+	//Destroy shared Memory
+	if (-1 == (shmctl(shmdb, IPC_RMID, NULL))){
+		perror("shmctl");
+	}
+	if (-1 == (shmctl(shmidup, IPC_RMID, NULL))){
+		perror("shmctl");
+	}
+	if (-1 == (shmctl(shmidpub, IPC_RMID, NULL))){
+		perror("shmctl");
+	}
+
+
 	pthread_exit((void *)0);
 }
