@@ -27,7 +27,7 @@
 # ManiPIO is dependent on pymodbus.
 # pip install  -U pymodbus
 # 
-from pymodbus.client.sync import ModbusTcpClient as ModbusClient
+from pymodbus.client import ModbusTcpClient as ModbusClient
 from pymodbus.payload import BinaryPayloadBuilder, BinaryPayloadDecoder
 from pymodbus.constants import Endian
 import sys
@@ -44,8 +44,8 @@ class MB_PLC:
         self.Mem_default = '32_float'
         self.port = Port
         self.client = ModbusClient(IP, port=self.port)
-        self.byteOrder = Endian.Big
-        self.wordOrder = Endian.Big
+        self.byteOrder = Endian.BIG
+        self.wordOrder = Endian.BIG
         self.mlock = threading.Lock()
 
     #Define how to connect with PLC
@@ -634,8 +634,8 @@ def constructor(FILE_PATH):
         #set up local vars
         IP = ''
         port = 502
-        byte_order = Endian.Big
-        word_order = Endian.Big
+        byte_order = Endian.BIG
+        word_order = Endian.BIG
 
         PLC_Lib ={
             'ip':IP,
@@ -662,9 +662,9 @@ def constructor(FILE_PATH):
                     PLC_Lib['ip'] = values
                 if Keys[0] == 'byteorder' or Keys[0] == 'wordorder':
                     if values[0] == 'big':
-                        PLC_Lib[Keys[0]] = Endian.Big
+                        PLC_Lib[Keys[0]] = Endian.BIG
                     elif values[0] == 'little':
-                        PLC_Lib[Keys[0]] = Endian.Little
+                        PLC_Lib[Keys[0]] = Endian.LITTLE
                     else:
                         print('Error: Wordorder and Byteorder must be either Big or Little!\n Defaulted to Big\n')
                 if Keys[0] == 'port':
