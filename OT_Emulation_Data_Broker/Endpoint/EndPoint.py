@@ -55,8 +55,8 @@ class MB_PLC:
         self.Mem_default = '32_float'
         self.port = Port
         self.client = ModbusClient(IP, port=self.port)
-        self.byteOrder = Endian.Big
-        self.wordOrder = Endian.Big
+        self.byteOrder = Endian.BIG
+        self.wordOrder = Endian.BIG
         self.mlock = threading.Lock()
 
     #Define how to connect with PLC
@@ -541,14 +541,14 @@ if __name__ == "__main__":
         
         #set endianness
         if Byte_order[i].lower() == 'little':
-            PLC[i].byteOrder = Endian.Little
+            PLC[i].byteOrder = Endian.LITTLE
         else:
-            PLC[i].byteOrder = Endian.Big
+            PLC[i].byteOrder = Endian.BIG
         
         if Word_order[i].lower() == 'little':
-            PLC[i].wordOrder = Endian.Little
+            PLC[i].wordOrder = Endian.LITTLE
         else:
-            PLC[i].wordOrder = Endian.Big
+            PLC[i].wordOrder = Endian.BIG
 
         #Init connectors
         Comms.append(Connector(PLC[i],serverAddress,Sensor_Data,Lock,event))
