@@ -11,10 +11,10 @@ would allow more ICS classes by adding a PLC 'type' option.
 
 ## Installation
 
-ManiPIO is dependent on [pymodbus](https://pymodbus.readthedocs.io/en/latest/readme.html#installing).
+ManiPIO is dependent on [pymodbus](https://pymodbus.readthedocs.io/en/latest/).
 
 ```bash
-pip install  -U pymodbus
+pip install pymodbus
 ```
 
 ## Usage
