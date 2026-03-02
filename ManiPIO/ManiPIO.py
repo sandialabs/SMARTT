@@ -28,8 +28,7 @@
 # pip install  -U pymodbus
 # 
 from pymodbus.client import ModbusTcpClient as ModbusClient
-from pymodbus.payload import BinaryPayloadBuilder, BinaryPayloadDecoder
-from pymodbus.constants import Endian
+import struct
 import sys
 import signal
 import time
@@ -41,11 +40,11 @@ class MB_PLC:
 
     def __init__(self, IP, Port):
         self.ip = IP
-        self.Mem_default = '32_float'
+        self.Mem_default = 'FLOAT32'
         self.port = Port
         self.client = ModbusClient(IP, port=self.port)
-        self.byteOrder = Endian.BIG
-        self.wordOrder = Endian.BIG
+        self.byteOrder = '>'   # '>' = big endian, '<' = little endian
+        self.wordOrder = '>'   # '>' = big word order, '<' = little
         self.mlock = threading.Lock()
 
     #Define how to connect with PLC
@@ -56,61 +55,41 @@ class MB_PLC:
 
     #Define how to read values from PLCs
     def read(self, mem_addr, formating=None):
-        #define decode options
-        def float_64(decode):
-            return decode.decode_64bit_float()
-        def float_32(decode):
-            return decode.decode_32bit_float()
-        def float_16(decode):
-            return decode.decode_16bit_float()
-        def int_64(decode):
-            return decode.decode_64bit_int()
-        def int_32(decode):
-            return decode.decode_32bit_int()
-        def int_16(decode):
-            return decode.decode_16bit_int()
-        def uint_64(decode):
-            return decode.decode_64bit_uint()
-        def uint_32(decode):
-            return decode.decode_32bit_uint()
-        def uint_16(decode):
-            return decode.decode_16bit_uint()
+        # struct format: (num_registers, struct_fmt_char)
+        Decode_dict = {
+            'FLOAT64': (4, 'd'), 'FLOAT32': (2, 'f'), 'FLOAT16': (1, 'e'),
+            'INT64':   (4, 'q'), 'INT32':   (2, 'i'), 'INT16':   (1, 'h'),
+            'UINT64':  (4, 'Q'), 'UINT32':  (2, 'I'), 'UINT16':  (1, 'H'),
+        }
 
-        #Check formatting and split off bit count
         if formating is None:
             formating = self.Mem_default
-        Format = formating.split('_')
 
-        if int(Format[0]) >= 16:  #determine number of registers to read
-            count = int(int(Format[0])/16)
-        else:
-            count = 1
+        count, fmt_char = Decode_dict[formating.upper()]
 
-        client = self.client #define client
+        client = self.client
 
         #Need to used mutex's to lock read/writes
         #This is because conflicts were found to happen with multiple Events using same PLC
         self.mlock.acquire()
         try:
-            results = client.read_holding_registers(mem_addr,count,unit=1) #read client PLC
+            results = client.read_holding_registers(mem_addr, count, slave=1)
         except:
             results = None
         self.mlock.release()
 
-        #Set up decoder
-        decoder = BinaryPayloadDecoder.fromRegisters(results.registers, byteorder=self.byteOrder, wordorder=self.wordOrder)
-
-        #decoder dictionary
-        Decode_dict = { '16_float':float_16, '32_float':float_32, '64_float':float_64, '16_int':int_16, '32_int':int_32, '64_int':int_64, '16_uint':uint_16, '32_uint':uint_32, '64_uint':uint_64 }
-
-        return Decode_dict[formating](decoder)
-        #return decoded value
+        regs = results.registers
+        # Reorder words if little word order
+        if self.wordOrder == '<':
+            regs = list(reversed(regs))
+        raw = struct.pack(self.byteOrder + 'H' * count, *regs)
+        return struct.unpack(self.byteOrder + fmt_char, raw)[0]
 
     #define how to read coils from PLC
     def readcoil(self, mem_addr):
         client = self.client
         self.mlock.acquire()
-        result = client.read_coils(mem_addr,1)
+        result = client.read_coils(mem_addr, 1)
         self.mlock.release()
         return result.bits[0]
 
@@ -123,55 +102,29 @@ class MB_PLC:
 
     #define how to write to registers
     def write(self, mem_addr, value, formating=None):
-        #define encode options
-        def float_64(build, value):
-            build.add_64bit_float(value)
-        def float_32(build, value):
-            build.add_32bit_float(value)
-        def float_16(build, value):
-            build.add_16bit_float(value)
-        def int_16(build, value):
-            build.add_16bit_int(value)
-        def int_32(build, value):
-            build.add_32bit_int(value)
-        def int_64(build, value):
-            build.add_64bit_int(value)
-        def uint_16(build, value):
-            build.add_16bit_uint(value)
-        def uint_32(build, value):
-            build.add_32bit_uint(value)
-        def uint_64(build, value):
-            build.add_64bit_uint(value)
+        Encode_dict = {
+            'FLOAT64': (4, 'd'), 'FLOAT32': (2, 'f'), 'FLOAT16': (1, 'e'),
+            'INT64':   (4, 'q'), 'INT32':   (2, 'i'), 'INT16':   (1, 'h'),
+            'UINT64':  (4, 'Q'), 'UINT32':  (2, 'I'), 'UINT16':  (1, 'H'),
+        }
 
-        #Catch default format conditions and split bits value to determine register write count
         if formating is None:
             formating = self.Mem_default
-        Format = formating.split('_')
 
-        #Catch incorrect formating of ints
-        if Format[1] == 'int' or Format[1] == 'uint':
-            if type(value) is not int:
-                value = int(value)
+        count, fmt_char = Encode_dict[formating.upper()]
 
+        # Catch incorrect formatting of ints
+        if fmt_char in ('q', 'i', 'h', 'Q', 'I', 'H') and type(value) is not int:
+            value = int(value)
 
-        if int(Format[0]) >= 16:  #determine number of registers to write
-            count = int(Format[0])/16
-        else:
-            count = 1
+        client = self.client
 
-        client = self.client #define client
+        raw = struct.pack(self.byteOrder + fmt_char, value)
+        regs = list(struct.unpack(self.byteOrder + 'H' * count, raw))
+        if self.wordOrder == '<':
+            regs = list(reversed(regs))
+        payload = regs
 
-        #start builder for writng to registers
-        builder = BinaryPayloadBuilder(byteorder=self.byteOrder, wordorder=self.wordOrder)
-
-        #encoder dictionary
-        Encode_dict = { '16_float':float_16, '32_float':float_32, '64_float':float_64, '16_int':int_16, '32_int':int_32, '64_int':int_64, '16_uint':uint_16, '32_uint':uint_32, '64_uint':uint_64 }
-
-        #Encode value with builder
-        Encode_dict[formating](builder, value)
-
-        payload = builder.to_registers()
-        
         #Lock out read/write operations to stop conflicts
         self.mlock.acquire()
         try:
@@ -195,7 +148,7 @@ class MB_PLC:
         client.close()
 
     def __repr__(self):
-        return "MB_PLC('{}','{}')".format(self.ip,self.port)
+        return "MB_PLC('{}','{}')".format(self.ip, self.port)
 
 #Begin Event class
 class Event:
@@ -312,7 +265,7 @@ class Event:
                     else:
                         value = self.values[i]
                     
-                    PLC.write(self.mem_addr[i],value, self.mem_format[i])
+                    PLC.write(self.mem_addr[i], value, self.mem_format[i])
 
                 #if this is not a persistant Event, break out of loop
                 if self.persist == False:
@@ -378,7 +331,7 @@ class Event:
                         if abs(dV) < abs((value - self.values[i])):
                             value = self.values[i+1]
                         for n in range(len(self.mem_addr)):
-                            PLC.write(self.mem_addr[n],value, self.mem_format[n])
+                            PLC.write(self.mem_addr[n], value, self.mem_format[n])
                 if self.persist == False:
                     break
         
@@ -548,7 +501,7 @@ class Trigger:
                     # find correct way to pull memory addresses
                     N_mem = 0 
                     if i > 0:
-                        for n in range(0,i+1):
+                        for n in range(0, i+1):
                             N_mem = N_mem + self.mem_alloc[n]
                     else:
                         N_mem = self.mem_alloc[0]
@@ -629,15 +582,15 @@ def constructor(FILE_PATH):
     def PLC_Text(line, file):
         nonlocal NPLC
         nonlocal PLCS
-        NPLC = NPLC +1
+        NPLC = NPLC + 1
 
         #set up local vars
         IP = ''
         port = 502
-        byte_order = Endian.BIG
-        word_order = Endian.BIG
+        byte_order = '>'
+        word_order = '>'
 
-        PLC_Lib ={
+        PLC_Lib = {
             'ip':IP,
             'port':port,
             'byteorder':byte_order,
@@ -662,9 +615,9 @@ def constructor(FILE_PATH):
                     PLC_Lib['ip'] = values
                 if Keys[0] == 'byteorder' or Keys[0] == 'wordorder':
                     if values[0] == 'big':
-                        PLC_Lib[Keys[0]] = Endian.BIG
+                        PLC_Lib[Keys[0]] = '>'
                     elif values[0] == 'little':
-                        PLC_Lib[Keys[0]] = Endian.LITTLE
+                        PLC_Lib[Keys[0]] = '<'
                     else:
                         print('Error: Wordorder and Byteorder must be either Big or Little!\n Defaulted to Big\n')
                 if Keys[0] == 'port':
@@ -678,7 +631,7 @@ def constructor(FILE_PATH):
         PLCS[NPLC].byteOrder = PLC_Lib['byteorder']
 
     #what to do if we find 'Event' in script
-    def Event_Text(line,file):
+    def Event_Text(line, file):
         nonlocal NEvent, Events, PLCS
         #set up variables
         plc = 0
@@ -729,14 +682,12 @@ def constructor(FILE_PATH):
             line = file.readline()
 
         #setup Event and put it in the Event dict
-        #print(PLCS[Att_Lib['plc'][0]])
         Events[NEvent] = Event(PLCS[Att_Lib['plc'][0]])
         #set all Event options
-        #print(Att_Lib['format'])
-        Events[NEvent].set_Event(values = Att_Lib['values'], mem_addr = Att_Lib['mem'], mem_format = Att_Lib['format'], time_delay = Att_Lib['delay'], timing = Att_Lib['timing'], persist = Att_Lib['persist'], Event = Att_Lib['type'][0] )
+        Events[NEvent].set_Event(values = Att_Lib['values'], mem_addr = Att_Lib['mem'], mem_format = Att_Lib['format'], time_delay = Att_Lib['delay'], timing = Att_Lib['timing'], persist = Att_Lib['persist'], Event = Att_Lib['type'][0])
 
     #what to do if 'trigger' is found in script
-    def Trigger_Text(line,file):
+    def Trigger_Text(line, file):
         nonlocal Ntrigger, Triggers, Events, PLCS
         Ntrigger = Ntrigger + 1
 
@@ -777,13 +728,13 @@ def constructor(FILE_PATH):
 
                 #if the keyword is anything but 'Event' put it in the plc dict
                 if type(Trig_Lib[Keys[0]]) is str:
-                    PLC_Lib[(plc_count,Keys[0])] = values
+                    PLC_Lib[(plc_count, Keys[0])] = values
                 elif type(Trig_Lib[Keys[0]]) is float:
-                    PLC_Lib[(plc_count,Keys[0])] = [float(x) for x in values]
+                    PLC_Lib[(plc_count, Keys[0])] = [float(x) for x in values]
                 elif Keys[0] == 'event':
                     Trig_Lib[Keys[0]] = [int(x) for x in values]
                 else:
-                    PLC_Lib[(plc_count,Keys[0])] = [int(x) for x in values]
+                    PLC_Lib[(plc_count, Keys[0])] = [int(x) for x in values]
             line = file.readline()
 
         #set up the trigger
@@ -794,7 +745,7 @@ def constructor(FILE_PATH):
             Triggers[Ntrigger].set_plc(PLCS[PLC_Lib[(n,'plc')][0]], PLC_Lib[(n,'mem')], PLC_Lib[(n,'conditions')], PLC_Lib[(n,'values')])
             
     #what to do if we find 'start' in the script
-    def Start_Text(line,file):
+    def Start_Text(line, file):
         nonlocal PLCS, Events, Triggers
         nonlocal NPLC, NEvent, Ntrigger
         #make lists of trigger and Event indexes 
